@@ -126,17 +126,17 @@ namespace AElf.Kernel.SmartContractExecution.Application
 
             stopwatch.Stop();
             Logger.LogInformation($"GetExecutiveAsync duration:{stopwatch.ElapsedMilliseconds} ms.");
-            
+            stopwatch.Restart();
             
             try
             {
-                stopwatch.Restart();
+                
                 executive.SetDataCache(chainContext.StateCache);
                 await executive.SetTransactionContext(txCtxt).Apply();
                 
                 stopwatch.Stop();
                 Logger.LogInformation($"SetTransactionContext duration:{stopwatch.ElapsedMilliseconds} ms.");
-                
+                stopwatch.Restart();
 //                txCtxt.Trace.StateSet = new TransactionExecutingStateSet();
 //                foreach (var kv in txCtxt.Trace.StateChanges)
 //                {
@@ -151,13 +151,10 @@ namespace AElf.Kernel.SmartContractExecution.Application
                         .Select(x => new KeyValuePair<string, byte[]>(x.Key, x.Value.ToByteArray())));
                     foreach (var inlineTx in txCtxt.Trace.InlineTransactions)
                     {
-                        stopwatch.Restart();
                         var inlineTrace = await ExecuteOneAsync(depth + 1, internalChainContext, inlineTx,
                             currentBlockTime, cancellationToken);
                         trace.InlineTraces.Add(inlineTrace);
-                        stopwatch.Stop();
-                        Logger.LogInformation($"ExecuteOneAsync inline duration:{stopwatch.ElapsedMilliseconds} ms.");
-                        
+
                         if (!inlineTrace.IsSuccessful())
                         {
                             // Fail already, no need to execute remaining inline transactions
@@ -176,7 +173,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             }
             finally
             {
-                stopwatch.Restart();
+                
                 await _smartContractExecutiveService.PutExecutiveAsync(transaction.To, executive);
                 
                 stopwatch.Stop();
