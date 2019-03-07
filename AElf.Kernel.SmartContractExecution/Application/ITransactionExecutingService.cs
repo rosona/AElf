@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -38,11 +39,14 @@ namespace AElf.Kernel.SmartContractExecution.Application
         public async Task<List<ExecutionReturnSet>> ExecuteAsync(BlockHeader blockHeader,
             List<Transaction> transactions, CancellationToken cancellationToken)
         {
+            var stopwatch = new Stopwatch();
+            stopwatch.Restart();
+            
             var groupStateCache = new TieredStateCache();
             var groupChainContext = new ChainContextWithTieredStateCache(blockHeader.PreviousBlockHash,
                 blockHeader.Height - 1, groupStateCache);
 
-            var returnSets = new List<ExecutionReturnSet>();
+            var returnSets = new List<ExecutionReturnSet>();          
             foreach (var transaction in transactions)
             {
                 if (cancellationToken.IsCancellationRequested)
@@ -52,6 +56,10 @@ namespace AElf.Kernel.SmartContractExecution.Application
 
                 var trace = await ExecuteOneAsync(0, groupChainContext, transaction, blockHeader.Time.ToDateTime(),
                     cancellationToken);
+                
+                stopwatch.Stop();
+                Logger.LogInformation($"ExecuteOneAsync duration:{stopwatch.ElapsedMilliseconds} ms.");
+                
                 if (!trace.IsSuccessful())
                 {
                     trace.SurfaceUpError();
@@ -83,6 +91,9 @@ namespace AElf.Kernel.SmartContractExecution.Application
         private async Task<TransactionTrace> ExecuteOneAsync(int depth, IChainContext chainContext,
             Transaction transaction, DateTime currentBlockTime, CancellationToken cancellationToken)
         {
+            var stopwatch = new Stopwatch();
+            stopwatch.Restart();
+            
             if (cancellationToken.IsCancellationRequested)
             {
                 return new TransactionTrace()
@@ -113,11 +124,19 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 internalChainContext,
                 transaction.To);
 
+            stopwatch.Stop();
+            Logger.LogInformation($"GetExecutiveAsync duration:{stopwatch.ElapsedMilliseconds} ms.");
+            
+            
             try
             {
+                stopwatch.Restart();
                 executive.SetDataCache(chainContext.StateCache);
                 await executive.SetTransactionContext(txCtxt).Apply();
-
+                
+                stopwatch.Stop();
+                Logger.LogInformation($"SetTransactionContext duration:{stopwatch.ElapsedMilliseconds} ms.");
+                
 //                txCtxt.Trace.StateSet = new TransactionExecutingStateSet();
 //                foreach (var kv in txCtxt.Trace.StateChanges)
 //                {
@@ -132,9 +151,13 @@ namespace AElf.Kernel.SmartContractExecution.Application
                         .Select(x => new KeyValuePair<string, byte[]>(x.Key, x.Value.ToByteArray())));
                     foreach (var inlineTx in txCtxt.Trace.InlineTransactions)
                     {
+                        stopwatch.Restart();
                         var inlineTrace = await ExecuteOneAsync(depth + 1, internalChainContext, inlineTx,
                             currentBlockTime, cancellationToken);
                         trace.InlineTraces.Add(inlineTrace);
+                        stopwatch.Stop();
+                        Logger.LogInformation($"ExecuteOneAsync inline duration:{stopwatch.ElapsedMilliseconds} ms.");
+                        
                         if (!inlineTrace.IsSuccessful())
                         {
                             // Fail already, no need to execute remaining inline transactions
@@ -153,7 +176,11 @@ namespace AElf.Kernel.SmartContractExecution.Application
             }
             finally
             {
+                stopwatch.Restart();
                 await _smartContractExecutiveService.PutExecutiveAsync(transaction.To, executive);
+                
+                stopwatch.Stop();
+                Logger.LogInformation($"PutExecutiveAsync inline duration:{stopwatch.ElapsedMilliseconds} ms.");
             }
 
             return trace;

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
@@ -10,6 +11,7 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.SmartContract.Domain;
 using AElf.Kernel.SmartContractExecution.Domain;
+using Microsoft.Extensions.Logging;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.SmartContractExecution.Application
@@ -30,6 +32,8 @@ namespace AElf.Kernel.SmartContractExecution.Application
             _blockGenerationService = blockGenerationService;
         }
 
+        public ILogger<BlockExecutingService> Logger { get; set; }
+        
         public async Task<Block> ExecuteBlockAsync(BlockHeader blockHeader,
             IEnumerable<Transaction> nonCancellableTransactions)
         {
@@ -41,6 +45,9 @@ namespace AElf.Kernel.SmartContractExecution.Application
             IEnumerable<Transaction> nonCancellableTransactions, IEnumerable<Transaction> cancellableTransactions,
             CancellationToken cancellationToken)
         {
+            var stopwatch = new Stopwatch();
+            stopwatch.Restart();
+            
             // TODO: If already executed, don't execute again. Maybe check blockStateSet?
 
             var nonCancellable = nonCancellableTransactions.ToList();
@@ -59,9 +66,17 @@ namespace AElf.Kernel.SmartContractExecution.Application
             };
             var nonCancellableReturnSets =
                 await _executingService.ExecuteAsync(blockHeader, nonCancellable, CancellationToken.None);
+            
+            stopwatch.Stop();
+            Logger.LogInformation($"nonCancellableReturnSets duration:{stopwatch.ElapsedMilliseconds} ms.");
+            stopwatch.Restart();
+            
             var cancellableReturnSets =
                 await _executingService.ExecuteAsync(blockHeader, cancellable, cancellationToken);
 
+            stopwatch.Stop();
+            Logger.LogInformation($"cancellableReturnSets duration:{stopwatch.ElapsedMilliseconds} ms.");
+            
             foreach (var returnSet in nonCancellableReturnSets)
             {
                 foreach (var change in returnSet.StateChanges)
