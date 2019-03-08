@@ -32,7 +32,7 @@ namespace AElf.Kernel.SmartContract.Application
 //        Task<SmartContractRegistration> GetContractByAddressAsync(Address address);
     }
 
-    public class SmartContractExecutiveService : ISmartContractExecutiveService, ITransientDependency
+    public class SmartContractExecutiveService : ISmartContractExecutiveService, ISingletonDependency
     {
         private readonly IDefaultContractZeroCodeProvider _defaultContractZeroCodeProvider;
         private readonly ISmartContractRunnerContainer _smartContractRunnerContainer;
@@ -43,7 +43,7 @@ namespace AElf.Kernel.SmartContract.Application
         private readonly ConcurrentDictionary<Hash, ConcurrentBag<IExecutive>> _executivePools =
             new ConcurrentDictionary<Hash, ConcurrentBag<IExecutive>>();
 
-        private static readonly ConcurrentDictionary<Address, SmartContractRegistration>
+        private readonly ConcurrentDictionary<Address, SmartContractRegistration>
             _addressSmartContractRegistrationMappingCache =
                 new ConcurrentDictionary<Address, SmartContractRegistration>();
 #if DEBUG
@@ -174,6 +174,7 @@ namespace AElf.Kernel.SmartContract.Application
             {
                 smartContractRegistration = await GetSmartContractRegistrationFromZeroAsync(chainContext, address);
             }
+
             _addressSmartContractRegistrationMappingCache.TryAdd(address, smartContractRegistration);
             return smartContractRegistration;
         }
@@ -208,11 +209,17 @@ namespace AElf.Kernel.SmartContract.Application
                 .DefaultContractZeroRegistration;
 
             IExecutive executiveZero = null;
+            SmartContractRegistration result = null;
             try
             {
                 executiveZero = await GetExecutiveAsync(registration);
                 executiveZero.SetDataCache(chainContext.StateCache);
                 await executiveZero.SetTransactionContext(txCtxt).Apply();
+                var returnBytes = txCtxt.Trace?.RetVal?.Data;
+                if (returnBytes != null)
+                {
+                    result = SmartContractRegistration.Parser.ParseFrom(returnBytes);
+                }
             }
             finally
             {
@@ -222,7 +229,7 @@ namespace AElf.Kernel.SmartContract.Application
                 }
             }
 
-            return trace.RetVal.Data.DeserializeToPbMessage<SmartContractRegistration>();
+            return result;
         }
 
         /*
