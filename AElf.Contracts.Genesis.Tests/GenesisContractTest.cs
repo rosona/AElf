@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Threading.Tasks;
 using AElf.Common;
@@ -139,6 +140,17 @@ namespace AElf.Contracts.Genesis
                 nameof(BasicContractZero.ChangeContractOwner), TokenContractAddress, Tester.GetAddress(otherOwnerKeyPair));
             resultChangeFailed.Status.ShouldBe(TransactionResultStatus.Failed);
             resultChangeFailed.Error.Contains("no permission.").ShouldBeTrue();
+        }
+        
+        [Fact]
+        public async Task Transfer()
+        {
+            var retval_1 = "Ch5BAGitY4iwX9L++nnT2q8u3HeTIdBFw0bPz846/PA=";
+            //var retval_2 = "qqWLbPWNTvM39txVtwH9V9YiAVo1SKkaTkCJKqNV";
+            
+            var byteArray = Convert.FromBase64String(retval_1);
+            var address = Address.FromBytes(byteArray);
+            address.ShouldBe(null);
         }
     }
 }
