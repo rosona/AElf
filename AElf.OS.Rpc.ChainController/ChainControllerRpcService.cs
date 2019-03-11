@@ -6,7 +6,9 @@ using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
+using AElf.Kernel.Consensus;
 using AElf.Kernel.Domain;
+using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContractExecution.Domain;
@@ -31,8 +33,7 @@ namespace AElf.OS.Rpc.ChainController
         public ITransactionManager TransactionManager { get; set; }
         public ISmartContractExecutiveService SmartContractExecutiveService { get; set; }
         public IBinaryMerkleTreeManager BinaryMerkleTreeManager { get; set; }
-        
-        
+
         public ISmartContractAddressService SmartContractAddressService { get; set; }
         public IStateStore<BlockStateSet> BlockStateSets { get; set; }
         public ILogger<ChainControllerRpcService> Logger { get; set; }
@@ -61,10 +62,18 @@ namespace AElf.OS.Rpc.ChainController
         public Task<JObject> GetChainInfo()
         {
             var basicContractZero = SmartContractAddressService.GetZeroSmartContractAddress();
-
+            var tokenContractAddress = SmartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name);
+            var resourceContractAddress = SmartContractAddressService.GetAddressByContractName(ResourceSmartContractAddressNameProvider.Name);
+            var dividendsContractAddress = SmartContractAddressService.GetAddressByContractName(DividendsSmartContractAddressNameProvider.Name);
+            var consensusContractAddress = SmartContractAddressService.GetAddressByContractName(ConsensusSmartContractAddressNameProvider.Name);
+            
             var response = new JObject
             {
-                [SmartContract.GenesisSmartContractZeroAssemblyName] = basicContractZero.GetFormatted(),
+                [SmartContract.GenesisSmartContractZeroAssemblyName] = basicContractZero?.GetFormatted(),
+                [SmartContract.GenesisTokenContractAssemblyName] = tokenContractAddress?.GetFormatted(),
+                [SmartContract.GenesisResourceContractAssemblyName] = resourceContractAddress?.GetFormatted(),
+                [SmartContract.GenesisDividendsContractAssemblyName] = dividendsContractAddress?.GetFormatted(),
+                [SmartContract.GenesisConsensusContractAssemblyName] = consensusContractAddress?.GetFormatted(),
                 ["ChainId"] = ChainHelpers.ConvertChainIdToBase58(_chainOptions.ChainId)
             };
 
@@ -153,7 +162,23 @@ namespace AElf.OS.Rpc.ChainController
                 throw new JsonRpcServiceException(Error.InvalidTransactionId, Error.Message[Error.InvalidTransactionId]);
             }
 
-            return await BuildTransactionResult(transactionHash);
+            var transactionResult = await this.GetTransactionResult(transactionHash);
+            var transaction = await TransactionManager.GetTransaction(transactionResult.TransactionId);
+
+            var response = (JObject) JsonConvert.DeserializeObject(transactionResult.ToString());
+            if (transactionResult.Status == TransactionResultStatus.Mined)
+            {
+                var block = await this.GetBlockAtHeight(transactionResult.BlockNumber);
+                response["BlockHash"] = block.BlockHashToHex;
+            }
+
+            if (transactionResult.Status == TransactionResultStatus.Failed)
+                response["Error"] = transactionResult.Error;
+
+            response["Transaction"] = (JObject) JsonConvert.DeserializeObject(transaction.ToString());
+            response["Transaction"]["Params"] = (JObject) JsonConvert.DeserializeObject(await this.GetTransactionParameters(transaction));
+
+            return response;
         }
 
         [JsonRpcMethod("GetTransactionsResult", "blockHash", "offset", "limit")]
@@ -185,27 +210,28 @@ namespace AElf.OS.Rpc.ChainController
                 throw new JsonRpcServiceException(Error.NotFound, Error.Message[Error.NotFound]);
             }
 
-            var transactions = new JArray();
+            var response = new JArray();
             if (offset <= block.Body.Transactions.Count - 1)
             {
                 limit = Math.Min(limit, block.Body.Transactions.Count - offset);
                 var transactionHashes = block.Body.Transactions.ToList().GetRange(offset, limit);
                 foreach (var hash in transactionHashes)
                 {
-                    transactions.Add(await BuildTransactionResult(hash));
+                    var transactionResult = await this.GetTransactionResult(hash);
+                    var jObjectResult = (JObject) JsonConvert.DeserializeObject(transactionResult.ToString());
+                    var transaction = await TransactionManager.GetTransaction(transactionResult.TransactionId);
+                    jObjectResult["BlockHash"] = block.BlockHashToHex;
+
+                    if (transactionResult.Status == TransactionResultStatus.Failed)
+                        jObjectResult["Error"] = transactionResult.Error;
+
+                    jObjectResult["Transaction"] = (JObject) JsonConvert.DeserializeObject(transaction.ToString());
+                    jObjectResult["Transaction"]["Params"] = (JObject) JsonConvert.DeserializeObject(await this.GetTransactionParameters(transaction));
+                    response.Add(jObjectResult);
                 }
             }
 
-            return JArray.FromObject(transactions);
-        }
-
-        private async Task<JObject> BuildTransactionResult(Hash transactionHash)
-        {
-            var transactionResult = await this.GetTransactionResult(transactionHash);
-            var response = (JObject) JsonConvert.DeserializeObject(transactionResult.ToString());
-            var transaction = await this.TransactionManager.GetTransaction(transactionHash);
-            response["Transaction"] = (JObject) JsonConvert.DeserializeObject(transaction.ToString());
-            return response;
+            return JArray.FromObject(response);
         }
 
         [JsonRpcMethod("GetBlockHeight")]

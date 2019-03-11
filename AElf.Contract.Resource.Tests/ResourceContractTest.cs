@@ -36,7 +36,6 @@ namespace AElf.Contracts.Resource.Tests
         {
             Tester = new ContractTester();
             var contractArray = Tester.GetDefaultContractTypes();
-            contractArray.Add(typeof(FeeReceiverContract));
             AsyncHelper.RunSync(() => Tester.InitialChainAsync(contractArray.ToArray()));
 
             BasicZeroContractAddress = Tester.GetZeroContractAddress();
@@ -145,7 +144,7 @@ namespace AElf.Contracts.Resource.Tests
             withdrawResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }
 
-        [Fact(Skip="Not implement issuue.")]
+        [Fact(Skip="Not implement issue.")]
         public async Task FeeReceiver_Burn()
         {
             await Initialize_Resource();

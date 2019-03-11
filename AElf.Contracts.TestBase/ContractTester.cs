@@ -273,8 +273,8 @@ namespace AElf.Contracts.TestBase
                 },
                 tx,
                 DateTime.UtcNow);
-
-            return transactionTrace.RetVal?.Data;
+            
+            return transactionTrace.ReturnValue;
         }
 
         public void SignTransaction(ref List<Transaction> transactions, ECKeyPair callerKeyPair)
