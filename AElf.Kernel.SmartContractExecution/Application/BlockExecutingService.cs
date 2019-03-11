@@ -110,6 +110,10 @@ namespace AElf.Kernel.SmartContractExecution.Application
             stopwatch.Restart();
 
             blockStateSet.BlockHash = blockHeader.GetHash();
+            stopwatch.Stop();
+            Logger.LogInformation($"GetHash duration:{stopwatch.ElapsedMilliseconds} ms.");
+            stopwatch.Restart();
+            
             await _blockchainStateManager.SetBlockStateSetAsync(blockStateSet);
 
             stopwatch.Stop();
