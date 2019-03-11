@@ -69,6 +69,12 @@ namespace AElf.Kernel.Services
             var transactions = await GenerateSystemTransactions(previousBlockHash, previousBlockHeight);
 
             var executableTransactionSet = await _txHub.GetExecutableTransactionSetAsync();
+            
+            stopwatch.Stop();
+            Logger.LogInformation($" GenerateSystemTransactions duration:{stopwatch.ElapsedMilliseconds} ms.");
+            
+            stopwatch.Start();
+            
             var pending = new List<Transaction>();
             if (executableTransactionSet.PreviousBlockHash == previousBlockHash)
             {

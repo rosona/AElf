@@ -77,6 +77,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             stopwatch.Stop();
             Logger.LogInformation($"cancellableReturnSets duration:{stopwatch.ElapsedMilliseconds} ms.");
             
+            
             foreach (var returnSet in nonCancellableReturnSets)
             {
                 foreach (var change in returnSet.StateChanges)
@@ -94,7 +95,9 @@ namespace AElf.Kernel.SmartContractExecution.Application
             }
 
             // TODO: Insert deferredTransactions to TxPool
-
+            
+            stopwatch.Restart();
+            
             var executed = new HashSet<Hash>(cancellableReturnSets.Select(x => x.TransactionId));
             var allExecutedTransactions =
                 nonCancellable.Concat(cancellable.Where(x => executed.Contains(x.GetHash()))).ToList();
@@ -105,6 +108,9 @@ namespace AElf.Kernel.SmartContractExecution.Application
             blockStateSet.BlockHash = blockHeader.GetHash();
             await _blockchainStateManager.SetBlockStateSetAsync(blockStateSet);
 
+            stopwatch.Stop();
+            Logger.LogInformation($"FillBlockAfterExecutionAsync & SetBlockStateSetAsync duration:{stopwatch.ElapsedMilliseconds} ms.");
+            
             return block;
         }
 

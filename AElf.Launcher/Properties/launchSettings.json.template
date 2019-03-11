@@ -3,17 +3,23 @@
         "bp1": {
             "commandName": "Project",
             "commandLineArgs": "",
-            "workingDirectory": "/path/to/appsSettings.json/for/bp1"
+            "workingDirectory": "/Users/zhengyue/github/configInfo/ConfigList3/bp1"
         },
         "bp2": {
             "commandName": "Project",
             "commandLineArgs": "",
-            "workingDirectory": "/path/to/appsSettings.json/for/bp2"
+            "workingDirectory": "/Users/zhengyue/github/configInfo/ConfigList3/bp2"
         },
         "bp3": {
             "commandName": "Project",
             "commandLineArgs": "",
-            "workingDirectory": "/path/to/appsSettings.json/for/bp3"
+            "workingDirectory": "/Users/zhengyue/github/configInfo/ConfigList3/bp3"
+        },
+        "single": {
+            "commandName": "Project",
+            "commandLineArgs": "",
+            "workingDirectory": "/Users/zhengyue/github/configInfo/single"
         }
+
     }
 }
