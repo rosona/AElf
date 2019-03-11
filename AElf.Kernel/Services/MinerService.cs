@@ -71,7 +71,7 @@ namespace AElf.Kernel.Services
             var executableTransactionSet = await _txHub.GetExecutableTransactionSetAsync();
             
             stopwatch.Stop();
-            Logger.LogInformation($" GenerateSystemTransactions duration:{stopwatch.ElapsedMilliseconds} ms.");
+            Logger.LogInformation($"GenerateSystemTransactions duration:{stopwatch.ElapsedMilliseconds} ms.");
             
             stopwatch.Start();
             

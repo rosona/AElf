@@ -104,12 +104,16 @@ namespace AElf.Kernel.SmartContractExecution.Application
             var merkleTreeRootOfWorldState = ComputeHash(GetDeterministicByteArrays(blockStateSet));
             var block = await _blockGenerationService.FillBlockAfterExecutionAsync(blockHeader, allExecutedTransactions,
                 merkleTreeRootOfWorldState);
+            
+            stopwatch.Stop();
+            Logger.LogInformation($"FillBlockAfterExecutionAsync duration:{stopwatch.ElapsedMilliseconds} ms.");
+            stopwatch.Restart();
 
             blockStateSet.BlockHash = blockHeader.GetHash();
             await _blockchainStateManager.SetBlockStateSetAsync(blockStateSet);
 
             stopwatch.Stop();
-            Logger.LogInformation($"FillBlockAfterExecutionAsync & SetBlockStateSetAsync duration:{stopwatch.ElapsedMilliseconds} ms.");
+            Logger.LogInformation($"SetBlockStateSetAsync duration:{stopwatch.ElapsedMilliseconds} ms.");
             
             return block;
         }
