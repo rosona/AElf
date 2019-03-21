@@ -36,6 +36,8 @@ namespace AElf.OS.Rpc.ChainController
         public ISmartContractExecutiveService SmartContractExecutiveService { get; set; }
         public ISmartContractAddressService SmartContractAddressService { get; set; }
         public IStateStore<BlockStateSet> BlockStateSets { get; set; }
+
+        public IChainManager ChainManager { get; set; }
         public ILogger<ChainControllerRpcService> Logger { get; set; }
 
         public ILocalEventBus LocalEventBus { get; set; } = NullLocalEventBus.Instance;
@@ -348,6 +350,15 @@ namespace AElf.OS.Rpc.ChainController
             if (blockState == null)
                 throw new JsonRpcServiceException(Error.NotFound, Error.Message[Error.NotFound]);
             return JObject.FromObject(JsonConvert.DeserializeObject(blockState.ToString()));
+        }
+        
+        [JsonRpcMethod("GetBlockLink", "blockHash")]
+        public async Task<JObject> GetBlockLink(string blockHash)
+        {
+            var blockLink = await ChainManager.GetChainBlockLinkAsync(Hash.LoadHex(blockHash));
+            if (blockLink == null)
+                throw new JsonRpcServiceException(Error.NotFound, Error.Message[Error.NotFound]);
+            return JObject.FromObject(JsonConvert.DeserializeObject(blockLink.ToString()));
         }
 
         /*
