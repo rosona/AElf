@@ -12,6 +12,7 @@ install:
   - ps: (new-object net.webclient).DownloadFile('https://github.com/protocolbuffers/protobuf/releases/download/v3.7.0/protoc-3.7.0-win64.zip', 'c:\protoc-3.7.0-win64.zip')
   - cmd: dir c:\
   - cmd: start /wait c:\vc_redist.x64.exe  /S
+  - ps: $?
   - cmd: unzip c:\protoc-3.7.0-win64.zip  -d c:\
   - cmd: copy c:\bin\protoc.exe   c:\Windows
   - cmd: node --version
