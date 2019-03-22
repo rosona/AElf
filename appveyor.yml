@@ -16,8 +16,6 @@ install:
   - cmd: unzip c:\protoc-3.7.0-win64.zip  -d c:\
   - cmd: copy c:\bin\protoc.exe   c:\Windows
   - cmd: node --version
-  - cmd: wmic
-  - cmd: product list 
 
   
 build_script:
