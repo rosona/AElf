@@ -1,7 +1,6 @@
 version: 1.0.0.{build}
 skip_tags: true
 image: Visual Studio 2017
-os: Visual Studio 2015
 environment:
   BOOST_ROOT: C:\Libraries\boost_1_59_0
   BOOST_LIBRARYDIR: C:\Libraries\boost_1_59_0\lib64-msvc-14.0
@@ -26,7 +25,6 @@ install:
 build_script:
   - ps: dotnet build AElf.Console.sln
   - ps: $?
-  - ps: dotnet test AElf.Console.sln
   - ps: $lastExitCode
   - ps: dotnet build AElf.sln
   - ps: dotnet test AElf.sln
