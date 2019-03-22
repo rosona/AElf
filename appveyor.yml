@@ -14,7 +14,9 @@ install:
   - cmd: unzip c:\protoc-3.7.0-win64.zip  -d c:\
   - cmd: copy c:\bin\protoc.exe   c:\Windows
   - cmd: node --version
-  - call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars32.bat"
+  - cd C:\Tools\vcpkg
+  - git pull
+  - .\bootstrap-vcpkg.bat
   - cmd: cd %APPVEYOR_BUILD_FOLDER%
 
   
