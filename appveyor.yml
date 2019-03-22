@@ -12,7 +12,7 @@ configuration:
 platform:
   - Any CPU
 install:
-  - call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"
+  - call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars32.bat"
   - ps: dotnet --info
   - ps: (new-object net.webclient).DownloadFile('https://github.com/protocolbuffers/protobuf/releases/download/v3.7.0/protoc-3.7.0-win64.zip', 'c:\protoc-3.7.0-win64.zip')
   - cmd: dir c:\
