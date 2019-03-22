@@ -15,6 +15,7 @@ install:
   
 build_script:
   - ps: dotnet build AElf.Console.sln
+  - ps: $?
   - ps: dotnet test AElf.Console.sln
   - ps: dotnet build AElf.sln
   - ps: dotnet test AElf.sln
