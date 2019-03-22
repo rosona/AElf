@@ -26,7 +26,6 @@ install:
 build_script:
   - ps: dotnet build AElf.Console.sln
   - ps: dotnet test AElf.Console.sln
-  - ps: $?
   - ps: $lastExitCode
   - ps: dotnet build AElf.sln
   - ps: dotnet test AElf.sln
