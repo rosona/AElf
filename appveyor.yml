@@ -1,9 +1,6 @@
 version: 1.0.0.{build}
 skip_tags: true
 image: Visual Studio 2017
-environment:
-  BOOST_ROOT: C:\Libraries\boost_1_59_0
-  BOOST_LIBRARYDIR: C:\Libraries\boost_1_59_0\lib64-msvc-14.0
 build:
   publish_nuget: true
   verbosity: minimal
@@ -12,17 +9,12 @@ configuration:
 platform:
   - Any CPU
 install:
-  - choco install vcredist-all
+  - choco install vcredist2017
   - ps: dotnet --info
   - ps: (new-object net.webclient).DownloadFile('https://github.com/protocolbuffers/protobuf/releases/download/v3.7.0/protoc-3.7.0-win64.zip', 'c:\protoc-3.7.0-win64.zip')
   - cmd: dir c:\
   - cmd: unzip c:\protoc-3.7.0-win64.zip  -d c:\
   - cmd: copy c:\bin\protoc.exe   c:\Windows
-  - cmd: node --version
-  - cd C:\Tools\vcpkg
-  - git pull
-  - .\bootstrap-vcpkg.bat
-  - cmd: cd %APPVEYOR_BUILD_FOLDER%
 
   
 build_script:
