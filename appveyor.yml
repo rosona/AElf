@@ -7,8 +7,13 @@ environment:
 build:
   publish_nuget: true
   verbosity: minimal
+configuration:
+  - Debug
+  - Release
+
 platform:
-  - x86  
+  - x86
+  - Any CPU
 install:
   - call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"
   - ps: dotnet --info
