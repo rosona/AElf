@@ -8,6 +8,7 @@ before_install:
 install:
 script:
   - echo "do scripts"
+  - echo $TRAVIS_BRANCH
 deploy:
   - provider: script
     script: 
