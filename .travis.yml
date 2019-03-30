@@ -4,27 +4,27 @@ mono: none
 dist: xenial
 before_install:
   - nvm install node
-  - npm install -g yarn
 install:
 script:
   - echo "do scripts"
   - echo $TRAVIS_BRANCH
   - echo $TRAVIS_OS_NAME
   - echo $TRAVIS_TAG
+  - echo $TRAVIS_PULL_REQUEST_BRANCH
   - echo "end scripts"
 deploy:
   - provider: script
     script: 
-      echo "dev...."; echo $TRAVIS_BRANCH
+      echo "dev...."; echo $TRAVIS_BRANCH;echo $TRAVIS_TAG;echo $TRAVIS_PULL_REQUEST_BRANCH
     skip_cleanup: true
     on:
       tags: true
       all_branches: true
-      condition: "$TRAVIS_BRANCH = dev"
+      condition: "$TRAVIS_PULL_REQUEST_BRANCH = dev"
   - provider: script
     script:
       echo "master..."
     on:
       tags: true
       all_branches: true
-      condition: "$TRAVIS_BRANCH =~ ^master|release-*$"
+      condition: "$TRAVIS_PULL_REQUEST_BRANCH =~ ^master|release-*$"
