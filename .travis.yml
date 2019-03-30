@@ -28,11 +28,11 @@ deploy:
     on:
       tags: true
       all_branches: true
-      condition: "$TRAVIS_PULL_REQUEST_BRANCH = dev"
+      condition: "$REAL_BRANCH = dev"
   - provider: script
     script:
       echo "master..."
     on:
       tags: true
       all_branches: true
-      condition: "$TRAVIS_PULL_REQUEST_BRANCH =~ ^master|release-*$"
+      condition: "$REAL_BRANCH =~ ^master|release-*$"
