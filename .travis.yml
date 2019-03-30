@@ -16,7 +16,7 @@ deploy:
     skip_cleanup: true
     on:
       tags: true
-      condition: $TRAVIS_BRANCH = dev AND $TRAVIS_TAG = true
+      condition: $TRAVIS_BRANCH = dev
   - provider: script
     script:
       echo "master..."
