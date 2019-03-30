@@ -11,7 +11,7 @@ script:
 deploy:
   - provider: script
     script: 
-      echo "dev...."
+      echo "dev...."; echo $TRAVIS_BRANCH
     skip_cleanup: true
     on:
       tags: true
