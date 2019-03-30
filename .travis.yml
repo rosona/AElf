@@ -36,3 +36,4 @@ deploy:
       tags: true
       all_branches: true
       condition: "$REAL_BRANCH =~ ^master|release-*$"
+ 
